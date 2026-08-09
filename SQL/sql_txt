@@ -399,6 +399,87 @@ WHERE total_revenue <
 
 *(Note: The source PDF title references 50 queries, but only 38 numbered queries were visible/legible in the document.)*
 
+________________________________________
+Q1 [JOINs]
+Find customers who placed at least one order.
+SELECT c.customer_name, COUNT(o.order_id) AS total_orders
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_name;
+________________________________________
+Q2 [LEFT JOIN + NULL]
+Find customers who never placed an order.
+SELECT c.customer_name
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+WHERE o.order_id IS NULL;
+________________________________________
+Q3 [GROUP BY + HAVING]
+Departments with average salary > 60,000.
+SELECT department_id, AVG(salary) AS avg_salary
+FROM employees
+GROUP BY department_id
+HAVING AVG(salary) > 60000;
+________________________________________
+Q4 [SUBQUERY]
+Employees earning more than their department’s average.
+SELECT e.employee_name, e.salary, e.department_id
+FROM employees e
+WHERE e.salary > (
+  SELECT AVG(salary)
+  FROM employees
+  WHERE department_id = e.department_id
+);
+________________________________________
+Q5 [CASE WHEN]
+Classify employees by salary range.
+SELECT employee_name, salary,
+       CASE
+         WHEN salary > 80000 THEN 'High'
+         WHEN salary BETWEEN 50000 AND 80000 THEN 'Medium'
+         ELSE 'Low'
+       END AS salary_category
+FROM employees;
+________________________________________
+Q6 [WINDOW – ROW_NUMBER]
+Assign row numbers by department, ordered by salary descending.
+SELECT employee_name, department_id, salary,
+       ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC) AS row_num
+FROM employees;
+________________________________________
+Q7 [WINDOW – RANK vs DENSE_RANK]
+Show difference between RANK() and DENSE_RANK().
+SELECT employee_name, salary,
+       RANK() OVER (ORDER BY salary DESC) AS rank_val,
+       DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rank_val
+FROM employees;
+•	RANK() skips numbers for ties.
+•	DENSE_RANK() doesn’t skip numbers.
+________________________________________
+Q8 [DATE FUNCTIONS]
+Orders placed in last 30 days, extract month & year.
+SELECT order_id, order_date,
+       MONTH(order_date) AS order_month,
+       YEAR(order_date) AS order_year
+FROM orders
+WHERE order_date >= DATEADD(DAY, -30, GETDATE());
+________________________________________
+Q9 [STRING FUNCTIONS]
+Customers with Gmail domain, trim spaces.
+SELECT TRIM(customer_name) AS clean_name, email
+FROM customers
+WHERE email LIKE '%@gmail.com';
+________________________________________
+Q10 [SELF JOIN]
+Employees earning more than their manager.
+SELECT e.employee_name, e.salary, m.employee_name AS manager_name, m.salary AS manager_salary
+FROM employees e
+JOIN employees m ON e.manager_id = m.employee_id
+WHERE e.salary > m.salary;
+
+
+
+
 ---
 
 # PART 2: 100 SQL Interview Questions & Answers

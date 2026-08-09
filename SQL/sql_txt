@@ -8,8 +8,861 @@
 # -- Order By 
 # -- Limit/Offset
 
-# Find duplicates records in a table
-SELECT column1, column2, COUNT(*) as duplicate_count
-FROM table_name
-GROUP BY column1, column2 
-HAVING COUNT(*) > 1
+# SQL Interview Questions & Queries — Complete Reference
+
+---
+
+# PART 1: SQL Interview Queries (Practical)
+
+## 1. Find duplicate records in a table
+```sql
+SELECT column1, column2, COUNT(*)
+FROM your_table
+GROUP BY column1, column2
+HAVING COUNT(*) > 1;
+```
+
+## 2. Retrieve the second highest salary from the Employee table
+```sql
+SELECT MAX(salary) AS SecondHighestSalary
+FROM Employee
+WHERE salary < (SELECT MAX(salary) FROM Employee);
+```
+
+## 3. Find employees without department (Left Join usage)
+```sql
+SELECT e.*
+FROM Employee e
+LEFT JOIN Department d
+ON e.department_id = d.department_id
+WHERE d.department_id IS NULL;
+```
+
+## 4. Calculate the total revenue per product
+```sql
+SELECT product_id,
+SUM(quantity * price) AS total_revenue
+FROM Sales
+GROUP BY product_id;
+```
+
+## 5. Get the top 3 highest-paid employees
+```sql
+SELECT TOP 3 *
+FROM Employee
+ORDER BY salary DESC;
+```
+
+## 6. Customers who made purchases but never returned products
+```sql
+SELECT DISTINCT c.customer_id
+FROM Customers c
+JOIN Orders o ON c.customer_id = o.customer_id
+WHERE c.customer_id NOT IN (
+    SELECT customer_id FROM Returns
+);
+```
+
+## 7. Show the count of orders per customer
+```sql
+SELECT customer_id,
+COUNT(*) AS order_count
+FROM Orders
+GROUP BY customer_id;
+```
+
+## 8. Retrieve all employees who joined in 2023
+```sql
+SELECT *
+FROM Employee
+WHERE YEAR(hire_date) = 2023;
+```
+
+## 9. Calculate the average order value per customer
+```sql
+SELECT customer_id,
+AVG(total_amount) AS avg_order_value
+FROM Orders
+GROUP BY customer_id;
+```
+
+## 10. Get the latest order placed by each customer
+```sql
+SELECT customer_id,
+MAX(order_date) AS latest_order_date
+FROM Orders
+GROUP BY customer_id;
+```
+
+## 11. Find products that were never sold
+```sql
+SELECT p.product_id
+FROM Products p
+LEFT JOIN Sales s
+ON p.product_id = s.product_id
+WHERE s.product_id IS NULL;
+```
+
+## 12. Identify the most selling product
+```sql
+SELECT TOP 1 product_id,
+SUM(quantity) AS total_qty
+FROM Sales
+GROUP BY product_id
+ORDER BY total_qty DESC;
+```
+
+## 13. Get the total revenue and the number of orders per region
+```sql
+SELECT region,
+SUM(total_amount) AS total_revenue,
+COUNT(*) AS order_count
+FROM Orders
+GROUP BY region;
+```
+
+## 14. Count how many customers placed more than 5 orders
+```sql
+SELECT COUNT(*) AS customer_count
+FROM (
+    SELECT customer_id FROM Orders
+    GROUP BY customer_id
+    HAVING COUNT(*) > 5
+) AS subquery;
+```
+
+## 15. Retrieve customers with orders above the average order value
+```sql
+SELECT *
+FROM Orders
+WHERE total_amount >
+(SELECT AVG(total_amount)
+FROM Orders);
+```
+
+## 16. Find all employees hired on weekends
+```sql
+SELECT *
+FROM Employee
+WHERE DATENAME(WEEKDAY, hire_date)
+IN ('Saturday', 'Sunday');
+```
+
+## 17. Find employees with salary between 50000 and 100000
+```sql
+SELECT *
+FROM Employee
+WHERE salary BETWEEN 50000 AND 100000;
+```
+
+## 18. Get monthly sales revenue and order count
+```sql
+SELECT
+FORMAT(date, 'yyyy-MM') AS month,
+SUM(amount) AS total_revenue,
+COUNT(order_id) AS order_count
+FROM Orders
+GROUP BY FORMAT(date, 'yyyy-MM');
+```
+
+## 19. Rank employees by salary within each department
+```sql
+SELECT employee_id, department_id,
+salary, RANK() OVER (PARTITION BY department_id
+ORDER BY salary DESC) AS salary_rk
+FROM Employee;
+```
+
+## 20. Find customers who placed orders every month in 2023
+```sql
+SELECT customer_id
+FROM Orders
+WHERE YEAR(order_date) = 2023
+GROUP BY customer_id
+HAVING COUNT(DISTINCT
+FORMAT(order_date,'yyyy-MM')) = 12;
+```
+
+## 21. Find moving average of sales over the last 3 days
+```sql
+SELECT order_date,
+AVG(total_amount) OVER (ORDER BY
+order_date ROWS BETWEEN 2 PRECEDING
+AND CURRENT ROW) AS moving_avg
+FROM Orders;
+```
+
+## 22. Identify the first and last order date for each customer
+```sql
+SELECT customer_id,
+MIN(order_date) AS first_order,
+MAX(order_date) AS last_order
+FROM Orders
+GROUP BY customer_id;
+```
+
+## 23. Show product sales distribution (percent of total revenue)
+```sql
+WITH TotalRevenue AS (
+SELECT
+SUM(quantity * price) AS total FROM Sales)
+SELECT s.product_id,
+SUM(s.quantity * s.price) AS revenue,
+SUM(s.quantity * s.price) * 100 / t.total
+AS revenue_pct
+FROM Sales s
+CROSS JOIN TotalRevenue t
+GROUP BY s.product_id, t.total;
+```
+
+## 24. Retrieve customers who made consecutive purchases (2 Days)
+```sql
+WITH cte AS (
+SELECT id, order_date,
+LAG(order_date) OVER (PARTITION BY id
+ORDER BY order_date) AS prev_order_date
+FROM Orders)
+SELECT id, order_date, prev_odate
+FROM cte
+WHERE
+DATEDIFF(DAY, prev_odate, order_date) = 1;
+```
+
+## 25. Find churned customers (no orders in the last 6 months)
+```sql
+SELECT customer_id
+FROM Orders
+GROUP BY customer_id
+HAVING
+MAX(order_date) <
+DATEADD(MONTH,-6,GETDATE());
+```
+
+## 26. Calculate cumulative revenue by day
+```sql
+SELECT order_date,
+SUM(total_amount) OVER
+(ORDER BY order_date) AS
+cumulative_revenue
+FROM Orders;
+```
+
+## 27. Identify top-performing departments by average salary
+```sql
+SELECT department_id,
+AVG(salary) AS avg_salary
+FROM Employee
+GROUP BY department_id
+ORDER BY avg_salary DESC;
+```
+
+## 28. Find customers who ordered more than the average number of orders per customer
+```sql
+WITH customer_orders AS (
+SELECT customer_id, COUNT(*) AS order_count
+FROM Orders
+GROUP BY customer_id)
+SELECT * FROM customer_orders
+WHERE order_count > (SELECT
+AVG(order_count) FROM customer_orders);
+```
+
+## 29. Calculate revenue generated from new customers (first-time orders)
+```sql
+WITH first_orders AS (
+SELECT customer_id, MIN(order_date) AS
+first_order_date FROM Orders
+GROUP BY customer_id)
+SELECT SUM(o.total_amount) AS new_revenue
+FROM Orders o JOIN first_orders f
+ON o.customer_id = f.customer_id
+WHERE o.order_date = f.first_order_date;
+```
+
+## 30. Find the percentage of employees in each department
+```sql
+SELECT
+    department_id,
+ COUNT(*) AS emp_count,
+COUNT(*) * 100.0 / (SELECT
+COUNT(*) FROM Employee)
+AS pct FROM Employee
+GROUP BY department_id;
+```
+
+## 31. Retrieve the maximum salary difference within each department
+```sql
+SELECT
+department_id,
+MAX(salary) - MIN(salary) AS
+salary_diff
+FROM Employee
+GROUP BY department_id;
+```
+
+## 32. Find products that contribute to 80% of the revenue (Pareto Principle)
+```sql
+WITH sales_cte AS (
+SELECT product_id, SUM(qty * price) AS revenue
+FROM Sales GROUP BY product_id),
+total_revenue AS (
+SELECT SUM(revenue) AS total FROM sales_cte)
+SELECT s.product_id, s.revenue,
+SUM(s.revenue) OVER
+(ORDER BY s.revenue DESC ROWS BETWEEN UNBOUNDED
+PRECEDING AND CURRENT ROW) AS running_total
+FROM sales_cte s, total_revenue t
+WHERE SUM(s.revenue) OVER (ORDER BY s.revenue DESC
+ROWS BETWEEN UNBOUNDED PRECEDING AND
+CURRENT ROW) <= t.total * 0.8;
+```
+
+## 33. Calculate average time between two purchases for each customer
+```sql
+WITH cte AS (
+SELECT customer_id, order_date,
+LAG(order_date) OVER (PARTITION BY
+customer_id
+ORDER BY order_date) AS prev_date
+FROM Orders)
+SELECT customer_id,
+AVG(DATEDIFF(DAY, prev_date, order_date))
+AS avg_gap_days FROM cte
+WHERE prev_date IS NOT NULL
+GROUP BY customer_id;
+```
+
+## 34. Show last purchase for each customer along with order amount
+```sql
+WITH ranked_orders AS
+(SELECT customer_id, order_id,
+total_amount, ROW_NUMBER() OVER
+(PARTITION BY customer_id ORDER BY
+order_date DESC) AS rn FROM Orders)
+SELECT customer_id, order_id,
+total_amount
+FROM ranked_orders
+WHERE rn = 1;
+```
+
+## 35. Calculate year-over-year growth in revenue
+```sql
+SELECT FORMAT(order_date, 'yyyy') AS year,
+SUM(total_amount) AS revenue,
+SUM(total_amount) - LAG(SUM(total_amount))
+OVER (ORDER BY FORMAT(order_date, 'yyyy'))
+AS yoy_growth
+FROM Orders
+GROUP BY FORMAT(order_date, 'yyyy');
+```
+
+## 36. Detect customers whose purchase amount is higher than their historical 90th percentile
+```sql
+WITH ranked_orders AS (
+ SELECT customer_id, order_id,
+total_amount,
+NTILE(10) OVER (PARTITION BY customer_id
+ORDER BY total_amount) AS decile
+FROM Orders)
+SELECT customer_id, order_id, total_amount
+FROM ranked_orders
+WHERE decile = 10;
+```
+
+## 37. Retrieve the longest gap between orders for each customer
+```sql
+WITH cte AS (
+SELECT customer_id, order_date,
+LAG(order_date) OVER (PARTITION BY
+customer_id ORDER BY order_date) AS
+prev_order_date FROM Orders)
+SELECT customer_id, MAX(DATEDIFF(DAY,
+prev_order_date, order_date)) AS max_gap
+FROM cte
+WHERE prev_order_date IS NOT NULL
+GROUP BY customer_id;
+```
+
+## 38. Identify customers with revenue below the 10th percentile
+```sql
+WITH cte AS (
+SELECT customer_id, SUM(total_amount) AS
+total_revenue
+FROM Orders
+GROUP BY customer_id)
+SELECT customer_id, total_revenue
+FROM cte
+WHERE total_revenue <
+(SELECT PERCENTILE_CONT(0.1) WITHIN GROUP
+(ORDER BY total_revenue) FROM cte);
+```
+
+*(Note: The source PDF title references 50 queries, but only 38 numbered queries were visible/legible in the document.)*
+
+---
+
+# PART 2: 100 SQL Interview Questions & Answers
+
+## Basic Level (Beginner)
+
+**1. What is SQL?**
+SQL (Structured Query Language) is a standard programming language used to interact with relational databases. It is used to store, retrieve, update, and delete data, and to create/modify database structures such as tables, views, and indexes.
+```sql
+SELECT * FROM Employees;
+```
+
+**2. What is a Database?**
+A database is an organized collection of data stored and managed electronically, allowing efficient storage, retrieval, update, and management of data.
+
+**3. What are the types of SQL commands?**
+- **DDL** (Data Definition Language) – CREATE, ALTER, DROP, TRUNCATE
+- **DML** (Data Manipulation Language) – SELECT, INSERT, UPDATE, DELETE
+- **DCL** (Data Control Language) – GRANT, REVOKE
+- **TCL** (Transaction Control Language) – COMMIT, ROLLBACK, SAVEPOINT
+- **DQL** (Data Query Language) – SELECT
+
+**4. What is Primary Key?**
+A column (or combination) that uniquely identifies each row. Cannot be NULL, cannot have duplicates, only one per table.
+```sql
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Age INT
+);
+```
+
+**5. What is Foreign Key?**
+A column that references the Primary Key of another table, enforcing referential integrity. Can contain duplicates and NULLs.
+```sql
+CREATE TABLE Departments (
+    DepartmentID INT PRIMARY KEY,
+    DepartmentName VARCHAR(50)
+);
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    DepartmentID INT,
+    FOREIGN KEY (DepartmentID) REFERENCES Departments(DepartmentID)
+);
+```
+
+**6. What is UNIQUE Key?**
+Ensures all values in a column are distinct. Allows one NULL value; multiple UNIQUE keys allowed per table.
+
+**7. Primary Key vs UNIQUE Key?**
+| Primary Key | UNIQUE Key |
+|---|---|
+| Uniquely identifies each row | Ensures all values are unique |
+| No NULLs | Allows one NULL |
+| Only one per table | Multiple allowed |
+| Creates unique clustered index | Creates unique non-clustered index |
+
+**8. What is NOT NULL Constraint?**
+Ensures a column cannot have NULL values.
+
+**9. What is Default Constraint?**
+Provides a default value for a column when none is specified.
+```sql
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Salary DECIMAL(10,2) DEFAULT 5000
+);
+```
+
+**10. DELETE vs TRUNCATE vs DROP?**
+| Command | Function | Rollback | Affects Structure | Speed |
+|---|---|---|---|---|
+| DELETE | Removes rows by condition | Yes (with COMMIT/ROLLBACK) | No | Slow |
+| TRUNCATE | Removes all rows | No | No | Faster |
+| DROP | Deletes entire table | No | Yes | Fastest |
+
+**11. WHERE vs HAVING?**
+| Clause | Purpose | Filter Type | Order |
+|---|---|---|---|
+| WHERE | Filters rows before grouping | Row-level | Before GROUP BY |
+| HAVING | Filters groups after grouping | Group-level | After GROUP BY |
+
+**12. What are Joins in SQL?**
+INNER, LEFT, RIGHT, FULL, SELF, CROSS JOIN.
+
+**13. INNER JOIN** – Returns only matching rows from both tables.
+
+**14. LEFT JOIN** – Returns all rows from left table + matching rows from right (NULL if no match).
+
+**15. RIGHT JOIN** – Returns all rows from right table + matching rows from left (NULL if no match).
+
+**16. FULL JOIN** – Returns all rows from both tables, NULL where no match.
+
+**17. Self Join** – A table joined with itself, e.g., employee-manager relationship.
+
+**18. Cross Join** – Cartesian product of two tables (Rows1 × Rows2).
+
+**19. UNION vs UNION ALL** – UNION removes duplicates & sorts; UNION ALL keeps duplicates and is faster.
+
+**20. UNION vs UNION ALL (detailed)**
+| Criteria | UNION | UNION ALL |
+|---|---|---|
+| Duplicates | Removed | Included |
+| Performance | Slower | Faster |
+| Sorting | Auto-sorted | Not sorted |
+
+**21. What is Normalization?**
+Organizing data to reduce redundancy and improve integrity via 1NF, 2NF, 3NF, BCNF.
+
+**22. What is Denormalization?**
+Combining tables/adding redundant data to improve read performance at the cost of redundancy.
+
+**23. CHAR vs VARCHAR?**
+| Criteria | CHAR | VARCHAR |
+|---|---|---|
+| Storage | Fixed-length | Variable-length |
+| Performance | Faster | Slower |
+| Padding | Yes | No |
+
+**24. SQL vs MySQL?**
+SQL is a query language; MySQL is an RDBMS software that uses SQL.
+
+**25. What is Auto Increment?**
+Automatically generates unique sequential numbers for new rows (commonly Primary Keys).
+```sql
+CREATE TABLE Employees (
+    EmployeeID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(50),
+    Salary DECIMAL(10,2)
+);
+```
+
+## Intermediate Level
+
+**26. What is Subquery?**
+A query nested inside another query — Single Row, Multiple Row, or Correlated.
+
+**27. What is Nested Query?**
+A query written inside another to retrieve data based on the inner query's result.
+
+**28. What is Correlated Subquery?**
+A subquery that depends on values from the outer query; executes row-by-row.
+```sql
+SELECT e.name, e.salary
+FROM employees e
+WHERE e.salary > (SELECT AVG(salary) FROM employees WHERE department_id = e.department_id);
+```
+
+**29. What is GROUP BY?**
+Groups rows with the same values into summary rows, used with aggregate functions.
+
+**30. GROUP BY vs ORDER BY?**
+GROUP BY groups & aggregates data; ORDER BY sorts the result set.
+
+**31. What is LIMIT?**
+Restricts the number of rows returned.
+```sql
+SELECT name, salary FROM employees ORDER BY salary DESC LIMIT 3;
+```
+
+**32. Second Highest Salary?**
+```sql
+SELECT MAX(salary) FROM employees WHERE salary < (SELECT MAX(salary) FROM employees);
+```
+
+**33. Find Duplicate Records?**
+```sql
+SELECT column_name, COUNT(*) FROM table_name GROUP BY column_name HAVING COUNT(*) > 1;
+```
+
+**34. What is CTE?**
+A temporary named result set defined within a single SQL statement using `WITH`.
+
+**35. What is Temporary Table?**
+Stores temporary data during a session; auto-deleted after session ends.
+
+**36. What is Window Function?**
+Performs calculations across rows related to the current row without collapsing results — uses `OVER()`. Includes ROW_NUMBER, RANK, DENSE_RANK, NTILE, SUM, AVG, MAX, MIN, LEAD, LAG.
+
+**37. ROW_NUMBER() vs RANK() vs DENSE_RANK()?**
+| Function | Duplicates | Skips Numbers | Example |
+|---|---|---|---|
+| ROW_NUMBER | No | No | 1,2,3,4 |
+| RANK | Yes | Yes | 1,2,2,4 |
+| DENSE_RANK | Yes | No | 1,2,2,3 |
+
+**38. What is CASE Statement?**
+Applies conditional logic similar to IF-ELSE.
+
+**39. What is COALESCE?**
+Returns the first non-null value from a list of expressions.
+
+**40. What is NVL Function?**
+Replaces NULL values with a specified value (Oracle).
+
+**41. What is Indexing?**
+Improves data retrieval speed by creating a lookup structure.
+
+**42. What is Clustered Index?**
+Sorts and stores data physically based on the indexed column; only one per table.
+
+**43. What is Non-Clustered Index?**
+Separate structure storing pointers to actual rows; multiple allowed per table.
+
+**44. Clustered vs Non-Clustered Index?**
+| Clustered | Non-Clustered |
+|---|---|
+| Physically sorted | Stores pointers |
+| One per table | Multiple allowed |
+| Faster retrieval | Slower |
+
+**45. What is View?**
+A virtual table based on a SQL query's result; doesn't store data physically.
+
+**46. View vs Table?**
+View is virtual and query-based; Table physically stores raw data.
+
+**47. What is Stored Procedure?**
+A group of predefined SQL statements stored in the database, executable multiple times.
+
+**48. Function vs Stored Procedure?**
+| Function | Stored Procedure |
+|---|---|
+| Returns a value | May/may not return value |
+| Used in SELECT | Cannot be used in SELECT |
+| Only input params | Input & output params |
+
+**49. What is Trigger?**
+An automatic action executed when a specified event (INSERT/UPDATE/DELETE) occurs.
+
+**50. What is Cursor?**
+A database object to retrieve/manipulate result sets row-by-row.
+
+## Advanced Level
+
+**51. What is ACID Property?**
+Atomicity, Consistency, Isolation, Durability — principles ensuring reliable transactions.
+
+**52. What is a Transaction?**
+A group of SQL operations executed as a single unit, following ACID properties.
+
+**53. COMMIT vs ROLLBACK?**
+COMMIT saves changes permanently; ROLLBACK undoes changes.
+
+**54. What is Savepoint?**
+Temporarily saves a transaction at a point, allowing partial rollback.
+
+**55. IN vs EXISTS?**
+| IN | EXISTS |
+|---|---|
+| Compares to a list of values | Checks if subquery returns rows |
+| Slower with large datasets | Faster for large datasets |
+
+**56. DELETE vs TRUNCATE?**
+DELETE removes specific rows (rollback possible); TRUNCATE removes all rows (faster, no rollback).
+
+**57. What is Index Fragmentation?**
+Occurs when logical index order doesn't match physical data order, slowing retrieval. Fixed via `OPTIMIZE TABLE`.
+
+**58. RANK() vs DENSE_RANK()?**
+RANK skips numbers after duplicates; DENSE_RANK does not.
+
+**59. Fetch common records from two tables?**
+```sql
+SELECT table1.column, table2.column
+FROM table1
+INNER JOIN table2 ON table1.common_column = table2.common_column;
+```
+
+**60. UNION vs JOIN?**
+UNION combines rows vertically; JOIN combines columns horizontally based on related columns.
+
+**61. What is Pivot Table?**
+Transforms row data into column data for summary reporting.
+
+**62. What is Case Sensitivity?**
+Whether the database treats uppercase/lowercase as different. MySQL is case-insensitive by default for strings; use `BINARY` for case-sensitive search.
+
+**63. Nth Highest Salary?**
+```sql
+SELECT DISTINCT Salary FROM Employees ORDER BY Salary DESC LIMIT 1 OFFSET N-1;
+```
+
+**64. First 3 Maximum Salaries?**
+```sql
+SELECT DISTINCT Salary FROM Employees ORDER BY Salary DESC LIMIT 3;
+```
+
+**65. Drop vs Delete vs Truncate?**
+| Command | Rollback | Speed | Structure Affected |
+|---|---|---|---|
+| DROP | No | Fastest | Yes |
+| DELETE | Yes | Slow | No |
+| TRUNCATE | No | Fast | No |
+
+**66. Calculate Age from DOB?**
+```sql
+SELECT Name, FLOOR(DATEDIFF(CURDATE(), DOB) / 365) AS Age FROM Employees;
+```
+
+**67. What is Recursive Query?**
+A query that refers to itself to process hierarchical data, implemented via CTE with `UNION ALL`.
+
+**68. Temporary Table vs CTE?**
+Temp tables store data physically and can be reused multiple times; CTEs are logical, one-time-use, and disappear after execution.
+
+**69. Find Odd/Even Records?**
+```sql
+SELECT * FROM Employees WHERE MOD(EmpID, 2) = 0; -- Even
+SELECT * FROM Employees WHERE MOD(EmpID, 2) = 1; -- Odd
+```
+
+**70. What is JSON in SQL?**
+Used to store/retrieve semi-structured key-value data within relational databases.
+
+**71. What is XML in SQL?**
+Used to store/retrieve hierarchical structured data using tags.
+
+**72. Handling NULL values?**
+Use `IS NULL`, `IS NOT NULL`, `COALESCE()`, `IFNULL()`, `NULLIF()`.
+
+**73. What is Dynamic SQL?**
+Constructing and executing SQL statements at runtime instead of static queries.
+
+**74. Calculate Percentage in SQL?**
+```sql
+SELECT (PartValue * 100.0) / TotalValue AS Percentage FROM TableName;
+```
+
+**75. Employees earning more than their Manager?**
+```sql
+SELECT E1.Name AS Employee, E1.Salary AS EmployeeSalary, E2.Name AS Manager, E2.Salary AS ManagerSalary
+FROM Employees E1
+JOIN Employees E2 ON E1.ManagerID = E2.EmpID
+WHERE E1.Salary > E2.Salary;
+```
+
+## Real-Time Scenarios
+
+**76. Find Duplicate Emails?**
+```sql
+SELECT Email, COUNT(Email) AS DuplicateCount FROM Employees GROUP BY Email HAVING COUNT(Email) > 1;
+```
+
+**77. Highest Salary in each Department?**
+```sql
+SELECT Department, MAX(Salary) AS HighestSalary FROM Employees GROUP BY Department;
+```
+
+**78. Employees joined in the last 3 months?**
+```sql
+SELECT Name, JoiningDate FROM Employees WHERE DATEDIFF(CURDATE(), JoiningDate) <= 90;
+```
+
+**79. Display First 5 Records?**
+```sql
+SELECT * FROM Employees LIMIT 5;  -- MySQL
+SELECT TOP 5 * FROM Employees;     -- SQL Server
+```
+
+**80. Number of Employees in each Department?**
+```sql
+SELECT Department, COUNT(EmpID) AS EmployeeCount FROM Employees GROUP BY Department;
+```
+
+**81. Last 3 Records?**
+```sql
+SELECT * FROM Employees ORDER BY EmpID DESC LIMIT 3;
+```
+
+**82. Employees without Managers?**
+```sql
+SELECT Name, EmpID FROM Employees WHERE ManagerID IS NULL;
+```
+
+**83. First Name starting with 'A'?**
+```sql
+SELECT Name FROM Employees WHERE Name LIKE 'A%';
+```
+
+**84. Fetch Alternate Rows?**
+```sql
+SELECT * FROM Employees WHERE MOD(EmpID, 2) = 0; -- Even rows
+```
+
+**85. Swap two columns?**
+```sql
+UPDATE Employees
+SET FirstName = @temp := FirstName,
+    FirstName = LastName,
+    LastName = @temp;
+```
+
+**86. Duplicate Records with Count?**
+```sql
+SELECT ColumnName, COUNT(ColumnName) AS Count FROM TableName GROUP BY ColumnName HAVING COUNT(ColumnName) > 1;
+```
+
+**87. Highest Salary without MAX()?**
+```sql
+SELECT Salary FROM Employees ORDER BY Salary DESC LIMIT 1;
+```
+
+**88. Common records without JOIN?**
+```sql
+SELECT Name FROM Employees WHERE Name IN (SELECT Name FROM Managers);
+```
+
+**89. Delete Duplicate Records?**
+```sql
+WITH CTE AS (
+    SELECT EmpID, Name, ROW_NUMBER() OVER (PARTITION BY Name ORDER BY EmpID) AS RowNum
+    FROM Employees
+)
+DELETE FROM Employees WHERE EmpID IN (SELECT EmpID FROM CTE WHERE RowNum > 1);
+```
+
+**90. Department with highest Employee Count?**
+```sql
+SELECT Department, COUNT(EmpID) AS EmployeeCount FROM Employees GROUP BY Department ORDER BY EmployeeCount DESC LIMIT 1;
+```
+
+## Optimization Techniques
+
+**91. How to Optimize SQL Queries?**
+Use indexes, avoid SELECT *, use joins efficiently, use EXISTS instead of IN, use LIMIT/TOP, avoid functions in WHERE, optimize subqueries, partition large tables, use CTEs/temp tables, analyze execution plans.
+
+**92. What is Query Execution Plan?**
+A roadmap the database engine uses to execute queries efficiently; viewed via `EXPLAIN` (MySQL) or `SET SHOWPLAN_ALL ON` (SQL Server).
+
+**93. How to Improve Query Performance?**
+Similar best practices as #91: indexing, filtering early with WHERE, limiting results, using EXISTS, avoiding functions in WHERE, partitioning, and analyzing execution plans.
+
+**94. What is Indexing?**
+A technique to speed up data retrieval by creating a lookup structure. Types: Primary, Unique, Clustered, Non-Clustered.
+
+**95. What is Table Partitioning?**
+Dividing large tables into smaller, manageable pieces (Range, List, Hash, Composite) to improve performance.
+
+**96. How to Avoid Deadlocks in SQL?**
+Access tables in consistent order, minimize lock time, use lower isolation levels, avoid user interaction inside transactions, use NOLOCK for reads, proper indexing, break large transactions into batches.
+
+**97. What is the use of EXISTS in SQL?**
+Checks whether a subquery returns any rows (TRUE/FALSE); faster than IN for large datasets.
+
+**98. What is Query Optimization?**
+The process of improving SQL query efficiency to retrieve data faster with minimal resource usage.
+
+**99. Stored Procedure vs Function?**
+| Stored Procedure | Function |
+|---|---|
+| Can return multiple values | Returns single value |
+| Can perform DML | Cannot perform DML |
+| Input & output parameters | Only input parameters |
+
+**100. OLTP vs OLAP?**
+| OLTP | OLAP |
+|---|---|
+| Day-to-day transactions | Data analysis & reporting |
+| Data consistency & speed | Data aggregation |
+| Detailed transactional data | Historical/summarized data |
+| Example: Banking, E-commerce | Example: Data Warehouses, BI tools |
+
+---
+*Source: "50 SQL Interview Queries" (coding_knowledge_Harry) and "100 SQL Interview Questions" (Vinay Kumar Panika)*

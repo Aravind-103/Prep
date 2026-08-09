@@ -1,0 +1,15 @@
+# Basic to Advanced SQL queries
+# Query execution.
+# -- From/Join 
+# -- Where 
+# -- Group By 
+# -- Having 
+# -- Select/Distinct 
+# -- Order By 
+# -- Limit/Offset
+
+# Find duplicates records in a table
+SELECT column1, column2, COUNT(*) as duplicate_count
+FROM table_name
+GROUP BY column1, column2 
+HAVING COUNT(*) > 1
